@@ -398,41 +398,56 @@ let valence_memory_trials = all_trivia.map(stim => {
   };
 });
 
-var prolific = {
-  type: jsPsychHtmlKeyboardResponse,
-  stimulus: "<p class='instructions'>Please wait a moment, you will automatically be redirected to prolific.</p>",
-  trial_duration: 3000,
-  choices: "NO_KEYS",
+/* ---------- INITIALISATION jsPsych ---------- */
+const jsPsych = initJsPsych({
+  display_element: 'jspsych-target',
+  override_safe_mode: true,
   on_finish: function(){
-  window.location.href = "https://app.prolific.com/submissions/complete?cc=CI7BHK3D";
+    jsPsych.data.get().localSave('csv', 'data.csv');
   }
-}
-var prolific_id = jsPsych.data.getURLVariable('PROLIFIC_PID');
-var study_id = jsPsych.data.getURLVariable('STUDY_ID');
-var session_id = jsPsych.data.getURLVariable('SESSION_ID');
-const subject_id = jsPsych.randomization.randomID(10); // ID aléatoire pour rendre données publiques
-const filename = `${subject_id}.csv`;
-// Your OSF token
-// const osfToken = '???';
+});
 
+/* ---------- RÉCUPÉRATION VARIABLES PROLIFIC ---------- */
+const prolific_id = jsPsych.data.getURLVariable('PROLIFIC_PID');
+const study_id = jsPsych.data.getURLVariable('STUDY_ID');
+const session_id = jsPsych.data.getURLVariable('SESSION_ID');
+const subject_id = jsPsych.randomization.randomID(10); // ID anonyme
 
+/* ---------- AJOUT MÉTADONNÉES ---------- */
 jsPsych.data.addProperties({
   subject_id: subject_id,
   prolific_id: prolific_id,
   study_id: study_id,
   session_id: session_id,
-})
+});
 
-var save_data = {
+/* ---------- DÉFINITION DU NOM DE FICHIER ---------- */
+const filename = `${subject_id}.csv`;
+
+/* ---------- ÉCRANS PROLIFIC ET SAUVEGARDE ---------- */
+const save_data = {
   type: jsPsychPipe,
   action: "save",
-  experiment_id: "A3AVF1ywc6tb",
+  experiment_id: "A3AVF1ywc6tb", // ton ID OSF
   filename: filename,
-  data_string: ()=>jsPsych.data.get().csv()
-  //token: osfToken
-}
+  data_string: () => jsPsych.data.get().csv()
+  // token: osfToken  
+};
 
-/* ---------- Définition de la timeline ---------- */
+const prolific = {
+  type: jsPsychHtmlKeyboardResponse,
+  stimulus: `
+    <p class='instructions'>
+      Please wait a moment, you will automatically be redirected to Prolific.
+    </p>`,
+  trial_duration: 3000,
+  choices: "NO_KEYS",
+  on_finish: function(){
+    window.location.href = "https://app.prolific.com/submissions/complete?cc=CI7BHK3D";
+  }
+};
+
+/* ---------- TIMELINE ---------- */
 const timeline = [
   preload,
   welcome,
@@ -449,14 +464,5 @@ const timeline = [
   prolific
 ];
 
-/* ---------- Lancement de l'expérience ---------- */
-const jsPsych = initJsPsych({
-  display_element: 'jspsych-target',
-  override_safe_mode: true,
-  on_finish: function(){
-    jsPsych.data.get().localSave('csv', 'data.csv');
-  }
-});
-
-// Lancer la timeline
+/* ---------- LANCEMENT DE L’EXPÉRIENCE ---------- */
 jsPsych.run(timeline);
