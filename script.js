@@ -403,7 +403,6 @@ const jsPsych = initJsPsych({
   display_element: 'jspsych-target',
   override_safe_mode: true,
   on_finish: function(){
-    jsPsych.data.get().localSave('csv', 'data.csv');
   }
 });
 
